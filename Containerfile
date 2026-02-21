@@ -21,16 +21,7 @@ RUN pacman -U --noconfirm 'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyo
 'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-v4-mirrorlist-22-1-any.pkg.tar.zst' \
 'https://mirror.cachyos.org/repo/x86_64/cachyos/pacman-7.1.0.r9.g54d9411-2-x86_64.pkg.tar.zst'
 
-RUN cat <<EOF | tee -a /etc/pacman.conf
-[cachyos-v3]
-Include = /etc/pacman.d/cachyos-v3-mirrorlist
-[cachyos-core-v3]
-Include = /etc/pacman.d/cachyos-v3-mirrorlist
-[cachyos-extra-v3]
-Include = /etc/pacman.d/cachyos-v3-mirrorlist
-[cachyos]
-Include = /etc/pacman.d/cachyos-mirrorlist
-EOF
+RUN echo -e "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos-core-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos-extra-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist" | tee -a /etc/pacman.conf
 
 RUN pacman -Syu --noconfirm
 
