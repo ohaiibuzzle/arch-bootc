@@ -18,17 +18,9 @@ RUN echo -e "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachy
 
 RUN pacman -Syu --noconfirm
 
-RUN pacman -Sy --noconfirm base cpio dracut linux-cachyos linux-cachyos-nvidia-open linux-firmware ostree btrfs-progs e2fsprogs xfsprogs dosfstools skopeo dbus dbus-glib glib2 ostree shadow base-devel git
-
-RUN cd /tmp && \
-    git clone https://aur.archlinux.org/yay-bin.git && \
-    cd yay-bin && \
-    makepkg -si --noconfirm && \
-    cd .. && \
-    rm -rf yay-bin
+RUN pacman -Sy --noconfirm base cpio dracut linux-cachyos linux-cachyos-nvidia-open linux-firmware ostree btrfs-progs e2fsprogs xfsprogs dosfstools skopeo dbus dbus-glib glib2 ostree shadow base-devel git yay
 
 RUN yay -S --noconfirm 7zip amd-ucode intel-ucode firefox flatpak mpv gnome 
-
 RUN yay -Scc --noconfirm
 
 # https://github.com/bootc-dev/bootc/issues/1801
