@@ -11,7 +11,41 @@ RUN sed -i 's/^[[:space:]]*NoExtract/#&/' /etc/pacman.conf
 # Reinstall glibc to fix missing language files due to missing in the base image
 RUN --mount=type=tmpfs,dst=/tmp --mount=type=cache,dst=/usr/lib/sysimage/cache/pacman pacman -Sy glibc --noconfirm
 
-RUN pacman -Syu --noconfirm base cpio dracut linux linux-firmware ostree btrfs-progs e2fsprogs xfsprogs dosfstools skopeo podman dbus dbus-glib glib2 ostree shadow && pacman -S --clean --noconfirm
+RUN pacman-key --init && \
+    pacman-key --recv-keys F3B607488DB35A47 --keyserver keyserver.ubuntu.com && \
+    pacman-key --lsign-key F3B607488DB35A47
+
+RUN pacman -U --noconfirm 'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-keyring-20240331-1-any.pkg.tar.zst' \
+'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-mirrorlist-22-1-any.pkg.tar.zst' \
+'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-v3-mirrorlist-22-1-any.pkg.tar.zst' \
+'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-v4-mirrorlist-22-1-any.pkg.tar.zst' \
+'https://mirror.cachyos.org/repo/x86_64/cachyos/pacman-7.1.0.r9.g54d9411-2-x86_64.pkg.tar.zst'
+
+RUN cat <<EOF | tee -a /etc/pacman.conf
+[cachyos-v3]
+Include = /etc/pacman.d/cachyos-v3-mirrorlist
+[cachyos-core-v3]
+Include = /etc/pacman.d/cachyos-v3-mirrorlist
+[cachyos-extra-v3]
+Include = /etc/pacman.d/cachyos-v3-mirrorlist
+[cachyos]
+Include = /etc/pacman.d/cachyos-mirrorlist
+EOF
+
+RUN pacman -Syu --noconfirm
+
+RUN pacman -Sy --noconfirm base cpio dracut linux-cachyos linux-cachyos-nvidia-open linux-firmware ostree btrfs-progs e2fsprogs xfsprogs dosfstools skopeo podman dbus dbus-glib glib2 ostree shadow base-devel
+
+RUN cd /tmp && \
+    git clone https://aur.archlinux.org/yay-bin.git && \
+    cd yay-bin && \
+    makepkg -si --noconfirm && \
+    cd .. && \
+    rm -rf yay-bin
+
+RUN yay -S --noconfirm 7zip amd-ucode intel-ucode firefox flatpak mpv gnome 
+
+RUN yay -Scc --noconfirm
 
 # https://github.com/bootc-dev/bootc/issues/1801
 RUN --mount=type=tmpfs,dst=/tmp --mount=type=tmpfs,dst=/root \
