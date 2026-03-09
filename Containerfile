@@ -21,13 +21,16 @@ RUN pacman -U --noconfirm 'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyo
 'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-v4-mirrorlist-22-1-any.pkg.tar.zst' \
 'https://mirror.cachyos.org/repo/x86_64/cachyos/pacman-7.1.0.r9.g54d9411-2-x86_64.pkg.tar.zst'
 
-RUN echo -e "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos-core-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos-extra-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist" | tee -a /etc/pacman.conf
+RUN echo -e "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos-core-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos-extra-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n" | tee -a /etc/pacman.conf
+RUN echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | tee -a /etc/pacman.conf
+
 
 RUN pacman -Syu --noconfirm
 
 RUN pacman -Sy --noconfirm base cpio dracut linux-cachyos linux-cachyos-nvidia-open linux-firmware ostree btrfs-progs e2fsprogs xfsprogs dosfstools skopeo podman dbus dbus-glib glib2 ostree shadow base-devel git yay
 
-RUN yay -S --noconfirm 7zip amd-ucode intel-ucode firefox flatpak mpv gnome 
+RUN yay -S --noconfirm 7zip amd-ucode intel-ucode firefox flatpak mpv gamescope-session-cachyos steam-devices plymouth plasma-desktop visual-studio-code-bin fprintd libfprint-cs9711-git gptfdisk nvidia-prime openssh nano opencl-mesa opencl-nvidia starship vulkan-radeon yakuake zram-generator power-profiles-daemon sbctl kwalletmanager jq btrfs-progs
+
 RUN yay -Scc --noconfirm
 
 # https://github.com/bootc-dev/bootc/issues/1801
