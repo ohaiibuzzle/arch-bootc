@@ -29,7 +29,25 @@ RUN pacman -Syu --noconfirm
 
 RUN pacman -Sy --noconfirm base cpio dracut linux-cachyos linux-cachyos-nvidia-open linux-firmware ostree btrfs-progs e2fsprogs xfsprogs dosfstools skopeo podman dbus dbus-glib glib2 ostree shadow base-devel git yay
 
-RUN yay -S --noconfirm 7zip amd-ucode intel-ucode firefox flatpak mpv gamescope-session-cachyos steam-devices plymouth plasma-desktop visual-studio-code-bin fprintd libfprint-cs9711-git gptfdisk nvidia-prime openssh nano opencl-mesa opencl-nvidia starship vulkan-radeon yakuake zram-generator power-profiles-daemon sbctl kwalletmanager jq btrfs-progs
+RUN yay -S --noconfirm 7zip amd-ucode intel-ucode firefox flatpak mpv gamescope-session-cachyos steam-devices plymouth plasma-desktop  fprintd gptfdisk nvidia-prime openssh nano opencl-mesa opencl-nvidia starship vulkan-radeon yakuake zram-generator power-profiles-daemon sbctl kwalletmanager jq btrfs-progs
+
+RUN cd /tmp/ && \
+    git clone https://aur.archlinux.org/libfprint-cs9711-git.git package && \
+    cd package && \
+    makepkg -so && \ 
+    chown -R nobody . && \
+    sudo -u nobody makepkg && \
+    pacman -U --no-confirm *.tar.zst && \
+    cd tmp && rm -rf package
+
+RUN cd /tmp/ && \
+    git clone https://aur.archlinux.org/visual-studio-code-bin.git package && \
+    cd package && \
+    makepkg -so && \ 
+    chown -R nobody . && \
+    sudo -u nobody makepkg && \
+    pacman -U --no-confirm *.tar.zst && \
+    cd /tmp && rm -rf package
 
 RUN yay -Scc --noconfirm
 
