@@ -41,6 +41,9 @@ jobs:
           # Lowercase the image uri
           echo "IMAGE_REGISTRY=${IMAGE_REGISTRY,,}" >> ${GITHUB_ENV}
           echo "IMAGE_NAME=${IMAGE_NAME,,}" >> ${GITHUB_ENV}
+      
+      - name: Maximize build space
+        uses: ublue-os/remove-unwanted-software@v7
 
       # These stage versions are pinned by https://github.com/renovatebot/renovate
       - name: Checkout
