@@ -1,3 +1,40 @@
+FROM docker.io/archlinux/archlinux:latest AS builder
+
+RUN pacman-key --init && \
+    pacman-key --recv-keys F3B607488DB35A47 --keyserver keyserver.ubuntu.com && \
+    pacman-key --lsign-key F3B607488DB35A47
+
+RUN pacman -U --noconfirm 'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-keyring-20240331-1-any.pkg.tar.zst' \
+'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-mirrorlist-22-1-any.pkg.tar.zst' \
+'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-v3-mirrorlist-22-1-any.pkg.tar.zst' \
+'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-v4-mirrorlist-22-1-any.pkg.tar.zst' \
+'https://mirror.cachyos.org/repo/x86_64/cachyos/pacman-7.1.0.r9.g54d9411-2-x86_64.pkg.tar.zst'
+
+RUN echo -e "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos-core-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos-extra-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n" | tee -a /etc/pacman.conf
+RUN echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | tee -a /etc/pacman.conf
+
+RUN pacman -Sy --noconfirm base-devel sudo git
+
+RUN useradd builder
+
+RUN echo "builder ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+RUN mkdir /built_pkgs/
+
+WORKDIR /tmp
+
+RUN sudo -u builder git clone https://aur.archlinux.org/libfprint-cs9711-git.git package && \
+    cd package && \
+    sudo -u builder makepkg -s --noconfirm && \ 
+    cp *.tar.zst /built_pkgs/ && \
+    cd ../ && rm -rf package
+
+RUN sudo -u builder git clone https://aur.archlinux.org/visual-studio-code-bin.git package && \
+    cd package && \
+    sudo -u builder makepkg -s --noconfirm && \ 
+    cp *.tar.zst /built_pkgs/ && \
+    cd ../ && rm -rf package
+
 FROM docker.io/archlinux/archlinux:latest
 
 # Move everything from `/var` to `/usr/lib/sysimage` so behavior around pacman remains the same on `bootc usroverlay`'d systems
@@ -24,30 +61,15 @@ RUN pacman -U --noconfirm 'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyo
 RUN echo -e "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos-core-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos-extra-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n" | tee -a /etc/pacman.conf
 RUN echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | tee -a /etc/pacman.conf
 
-
 RUN pacman -Syu --noconfirm
 
 RUN pacman -Sy --noconfirm base cpio dracut linux-cachyos linux-cachyos-nvidia-open linux-firmware ostree btrfs-progs e2fsprogs xfsprogs dosfstools skopeo podman dbus dbus-glib glib2 ostree shadow base-devel git yay
 
-RUN yay -S --noconfirm 7zip amd-ucode intel-ucode firefox flatpak mpv gamescope-session-cachyos steam-devices plymouth plasma-desktop  fprintd gptfdisk nvidia-prime openssh nano opencl-mesa opencl-nvidia starship vulkan-radeon yakuake zram-generator power-profiles-daemon sbctl kwalletmanager jq btrfs-progs
+RUN yay -S --noconfirm 7zip amd-ucode intel-ucode firefox flatpak mpv gamescope-session-cachyos steam-devices plymouth plasma-desktop gptfdisk nvidia-prime openssh nano opencl-mesa opencl-nvidia starship vulkan-radeon yakuake zram-generator power-profiles-daemon sbctl kwalletmanager jq btrfs-progs pipewire wireplumber pipewire-jack
 
-RUN cd /tmp/ && \
-    git clone https://aur.archlinux.org/libfprint-cs9711-git.git package && \
-    cd package && \
-    makepkg -so && \ 
-    chown -R nobody . && \
-    sudo -u nobody makepkg && \
-    pacman -U --no-confirm *.tar.zst && \
-    cd tmp && rm -rf package
-
-RUN cd /tmp/ && \
-    git clone https://aur.archlinux.org/visual-studio-code-bin.git package && \
-    cd package && \
-    makepkg -so && \ 
-    chown -R nobody . && \
-    sudo -u nobody makepkg && \
-    pacman -U --no-confirm *.tar.zst && \
-    cd /tmp && rm -rf package
+RUN mkdir /tmp/built_pkgs
+COPY --from=builder /built_pkgs/ /tmp/built_pkgs/
+RUN ls /tmp/built_pkgs && pacman -U --noconfirm /tmp/built_pkgs/*.tar.zst && rm -rf /tmp/built_pkgs
 
 RUN yay -Scc --noconfirm
 
