@@ -41,7 +41,7 @@ RUN pacman -S --noconfirm base cpio dracut linux-cachyos linux-cachyos-nvidia-op
     vulkan-radeon yakuake zram-generator power-profiles-daemon sbctl kwalletmanager jq btrfs-progs pipewire wireplumber \
     pipewire-jack plasma-login-manager discover kate dolphin fcitx5-im fcitx5-unikey fcitx5-anthy nvtop btop \
     plasma-systemmonitor partitionmanager networkmanager noto-fonts noto-fonts-cjk noto-fonts-extra just bash-completion \
-    man-db tailscale tlp
+    man-db tailscale tlp efibootmgr
 
 RUN mkdir /tmp/built_pkgs
 COPY --from=builder /built_pkgs/ /tmp/built_pkgs/
