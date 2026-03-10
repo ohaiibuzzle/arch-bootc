@@ -1,10 +1,9 @@
 FROM docker.io/cachyos/cachyos-v3:latest AS builder
 
-RUN pacman -Sy --noconfirm base-devel sudo git
-
-RUN useradd builder && echo "builder ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
-
-RUN mkdir /built_pkgs/
+RUN pacman -Sy --noconfirm base-devel sudo git && \
+    useradd builder && \
+    echo "builder ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers && \
+    mkdir /built_pkgs/
 
 WORKDIR /tmp
 
@@ -20,7 +19,7 @@ RUN sudo -u builder git clone https://aur.archlinux.org/visual-studio-code-bin.g
     cp *.tar.zst /built_pkgs/ && \
     cd ../ && rm -rf package
 
-FROM docker.io/cachyos/cachyos-v3:latest
+FROM docker.io/cachyos/cachyos-v3:latest as base
 
 # Move everything from `/var` to `/usr/lib/sysimage` so behavior around pacman remains the same on `bootc usroverlay`'d systems
 RUN grep "= */var" /etc/pacman.conf | sed "/= *\/var/s/.*=// ; s/ //" | xargs -n1 sh -c 'mkdir -p "/usr/lib/sysimage/$(dirname $(echo $1 | sed "s@/var/@@"))" && mv -v "$1" "/usr/lib/sysimage/$(echo "$1" | sed "s@/var/@@")"' '' && \
@@ -83,3 +82,10 @@ RUN sed -i 's|^HOME=.*|HOME=/var/home|' "/etc/default/useradd" && \
 LABEL containers.bootc 1
 
 RUN bootc container lint
+
+FROM quay.io/jlebon/chunkah AS chunkah
+RUN --mount=from=base,src=/,target=/chunkah,ro \
+    --mount=type=bind,target=/run/src,rw \
+        chunkah build --max-layers 448 --compressed > /run/src/out.ociarchive
+
+FROM oci-archive:out.ociarchive
