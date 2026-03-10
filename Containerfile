@@ -79,8 +79,7 @@ RUN pacman -Scc --noconfirm
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen && \
     echo -e '\neval $(starship init bash)' > /etc/bash.bashrc && \
     plymouth-set-default-theme bgrt && \
-    systemctl enable NetworkManager power-profiles-daemon bluetooth plasmalogin tlp && \
-    systemd-firstboot --reset
+    systemctl enable NetworkManager power-profiles-daemon bluetooth plasmalogin tlp
 
 # https://github.com/bootc-dev/bootc/issues/1801
 RUN --mount=type=tmpfs,dst=/tmp --mount=type=tmpfs,dst=/root \
