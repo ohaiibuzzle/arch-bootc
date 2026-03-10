@@ -34,14 +34,20 @@ RUN --mount=type=tmpfs,dst=/tmp --mount=type=cache,dst=/usr/lib/sysimage/cache/p
 
 RUN pacman -Syu --noconfirm
 
-RUN pacman -S --noconfirm base cpio dracut linux-cachyos linux-cachyos-nvidia-open linux-firmware \
-    ostree btrfs-progs e2fsprogs xfsprogs dosfstools skopeo podman dbus dbus-glib glib2 ostree shadow \
-    base-devel git 7zip amd-ucode intel-ucode firefox flatpak flatpak-kcm mpv gamescope-session-cachyos \
-    steam-devices plymouth plymouth-kcm plasma gptfdisk nvidia-prime openssh nano opencl-mesa opencl-nvidia starship \
-    vulkan-radeon yakuake zram-generator power-profiles-daemon sbctl kwalletmanager jq btrfs-progs pipewire wireplumber \
-    pipewire-jack plasma-login-manager discover kate dolphin fcitx5-im fcitx5-unikey fcitx5-anthy nvtop btop \
-    plasma-systemmonitor partitionmanager networkmanager noto-fonts noto-fonts-cjk noto-fonts-extra just bash-completion \
-    man-db tailscale tlp efibootmgr
+RUN pacman -S --noconfirm \
+    7zip amd-ucode base base-devel bash-completion btop btrfs-progs \
+    cpio dbus dbus-glib discover dolphin dosfstools dracut e2fsprogs \
+    efibootmgr fcitx5-anthy fcitx5-im fcitx5-unikey firefox flatpak \
+    flatpak-kcm gamescope-session-cachyos git glib2 gptfdisk \
+    intel-ucode jq just kate kwalletmanager linux-cachyos \
+    linux-cachyos-nvidia-open linux-firmware man-db mpv nano \
+    networkmanager noto-fonts noto-fonts-cjk noto-fonts-extra \
+    nvtop opencl-mesa opencl-nvidia openssh ostree partitionmanager \
+    pipewire pipewire-jack plasma plasma-login-manager \
+    plasma-systemmonitor plymouth plymouth-kcm podman \
+    power-profiles-daemon sbctl shadow skopeo starship \
+    steam-devices tailscale tlp vulkan-radeon wireplumber \
+    xfsprogs yakuake zram-generator
 
 RUN mkdir /tmp/built_pkgs
 COPY --from=builder /built_pkgs/ /tmp/built_pkgs/
