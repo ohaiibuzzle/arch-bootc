@@ -63,9 +63,9 @@ RUN echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | tee -a /etc/pac
 
 RUN pacman -Syu --noconfirm
 
-RUN pacman -Sy --noconfirm base cpio dracut linux-cachyos linux-cachyos-nvidia-open linux-firmware ostree btrfs-progs e2fsprogs xfsprogs dosfstools skopeo podman dbus dbus-glib glib2 ostree shadow base-devel git yay
+RUN pacman -S --noconfirm base cpio dracut linux-cachyos linux-cachyos-nvidia-open linux-firmware ostree btrfs-progs e2fsprogs xfsprogs dosfstools skopeo podman dbus dbus-glib glib2 ostree shadow base-devel git
 
-RUN yay -S --noconfirm 7zip amd-ucode intel-ucode firefox flatpak flatpak-kcm mpv gamescope-session-cachyos steam-devices plymouth plymouth-kcm plasma gptfdisk nvidia-prime openssh nano opencl-mesa opencl-nvidia starship vulkan-radeon yakuake zram-generator power-profiles-daemon sbctl kwalletmanager jq btrfs-progs pipewire wireplumber pipewire-jack plasma-login-manager discover kate dolphin fcitx5-im fcitx5-unikey fcitx5-anthy nvtop btop plasma-systemmonitor partitionmanager networkmanager noto-fonts noto-fonts-cjk noto-fonts-extra just bash-completion man-db tailscale
+RUN pacman -S --noconfirm 7zip amd-ucode intel-ucode firefox flatpak flatpak-kcm mpv gamescope-session-cachyos steam-devices plymouth plymouth-kcm plasma gptfdisk nvidia-prime openssh nano opencl-mesa opencl-nvidia starship vulkan-radeon yakuake zram-generator power-profiles-daemon sbctl kwalletmanager jq btrfs-progs pipewire wireplumber pipewire-jack plasma-login-manager discover kate dolphin fcitx5-im fcitx5-unikey fcitx5-anthy nvtop btop plasma-systemmonitor partitionmanager networkmanager noto-fonts noto-fonts-cjk noto-fonts-extra just bash-completion man-db tailscale
 
 RUN mkdir /tmp/built_pkgs
 COPY --from=builder /built_pkgs/ /tmp/built_pkgs/
@@ -73,7 +73,7 @@ RUN ls /tmp/built_pkgs && pacman -U --noconfirm /tmp/built_pkgs/*.tar.zst && rm 
 
 RUN systemctl enable NetworkManager power-profiles-daemon bluetooth plasmalogin
 
-RUN yay -Scc --noconfirm
+RUN pacman -Scc --noconfirm
 
 # https://github.com/bootc-dev/bootc/issues/1801
 RUN --mount=type=tmpfs,dst=/tmp --mount=type=tmpfs,dst=/root \

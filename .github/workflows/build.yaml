@@ -102,7 +102,7 @@ jobs:
         uses: ublue-os/legacy-rechunk@a925083d9af7cb04b3e2a6e8c01bfa495f38b710 # v1.0.0
         with:
           rechunk: "ghcr.io/ublue-os/legacy-rechunk:v1.0.0-x86_64"
-          ref: "${{ env.IMAGE_NAME }}/raw-img"
+          ref: "${{ env.IMAGE_NAME }}:raw-img"
           version: "${{ steps.metadata.outputs.tags }}"
           labels: ${{ steps.metadata.outputs.labels }}
 
