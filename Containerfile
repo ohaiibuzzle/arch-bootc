@@ -29,7 +29,7 @@ RUN --mount=type=tmpfs,dst=/tmp --mount=type=cache,dst=/usr/lib/sysimage/cache/p
 RUN pacman -Syu --noconfirm
 
 RUN pacman -S --noconfirm \
-    7zip amd-ucode base base-devel bash-completion btop btrfs-progs \
+    7zip ark amd-ucode base base-devel bash-completion btop btrfs-progs \
     cpio dbus dbus-glib discover dolphin dosfstools dracut e2fsprogs \
     efibootmgr fcitx5-anthy fcitx5-im fcitx5-unikey firefox flatpak \
     flatpak-kcm gamescope-session-cachyos git glib2 gptfdisk \
