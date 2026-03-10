@@ -50,7 +50,7 @@ RUN ls /tmp/built_pkgs && pacman -U --noconfirm /tmp/built_pkgs/*.tar.zst && rm 
 RUN pacman -Scc --noconfirm
 
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen && \
-    echo -e '\neval $(starship init bash)' > /etc/bash.bashrc && \
+    echo -e '\neval $(starship init bash)' >> /etc/bash.bashrc && \
     plymouth-set-default-theme bgrt && \
     systemctl enable NetworkManager power-profiles-daemon bluetooth plasmalogin tlp && \
     mkdir -p /usr/lib/bootc/kargs.d/ && \
