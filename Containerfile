@@ -52,7 +52,10 @@ RUN pacman -Scc --noconfirm
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen && \
     echo -e '\neval $(starship init bash)' > /etc/bash.bashrc && \
     plymouth-set-default-theme bgrt && \
-    systemctl enable NetworkManager power-profiles-daemon bluetooth plasmalogin tlp
+    systemctl enable NetworkManager power-profiles-daemon bluetooth plasmalogin tlp && \
+    mkdir -p /usr/lib/bootc/kargs.d/ && \
+    echo -e 'kargs = ["quiet splash"]' > /usr/lib/bootc/kargs.d/00-splash.toml
+
 
 # https://github.com/bootc-dev/bootc/issues/1801
 RUN --mount=type=tmpfs,dst=/tmp --mount=type=tmpfs,dst=/root \
