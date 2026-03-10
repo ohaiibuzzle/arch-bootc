@@ -15,9 +15,7 @@ RUN echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | tee -a /etc/pac
 
 RUN pacman -Sy --noconfirm base-devel sudo git
 
-RUN useradd builder
-
-RUN echo "builder ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
+RUN useradd builder && echo "builder ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers
 
 RUN mkdir /built_pkgs/
 
@@ -63,17 +61,26 @@ RUN echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | tee -a /etc/pac
 
 RUN pacman -Syu --noconfirm
 
-RUN pacman -S --noconfirm base cpio dracut linux-cachyos linux-cachyos-nvidia-open linux-firmware ostree btrfs-progs e2fsprogs xfsprogs dosfstools skopeo podman dbus dbus-glib glib2 ostree shadow base-devel git
-
-RUN pacman -S --noconfirm 7zip amd-ucode intel-ucode firefox flatpak flatpak-kcm mpv gamescope-session-cachyos steam-devices plymouth plymouth-kcm plasma gptfdisk nvidia-prime openssh nano opencl-mesa opencl-nvidia starship vulkan-radeon yakuake zram-generator power-profiles-daemon sbctl kwalletmanager jq btrfs-progs pipewire wireplumber pipewire-jack plasma-login-manager discover kate dolphin fcitx5-im fcitx5-unikey fcitx5-anthy nvtop btop plasma-systemmonitor partitionmanager networkmanager noto-fonts noto-fonts-cjk noto-fonts-extra just bash-completion man-db tailscale
+RUN pacman -S --noconfirm base cpio dracut linux-cachyos linux-cachyos-nvidia-open linux-firmware \
+    ostree btrfs-progs e2fsprogs xfsprogs dosfstools skopeo podman dbus dbus-glib glib2 ostree shadow \
+    base-devel git 7zip amd-ucode intel-ucode firefox flatpak flatpak-kcm mpv gamescope-session-cachyos \
+    steam-devices plymouth plymouth-kcm plasma gptfdisk nvidia-prime openssh nano opencl-mesa opencl-nvidia starship \
+    vulkan-radeon yakuake zram-generator power-profiles-daemon sbctl kwalletmanager jq btrfs-progs pipewire wireplumber \
+    pipewire-jack plasma-login-manager discover kate dolphin fcitx5-im fcitx5-unikey fcitx5-anthy nvtop btop \
+    plasma-systemmonitor partitionmanager networkmanager noto-fonts noto-fonts-cjk noto-fonts-extra just bash-completion \
+    man-db tailscale tlp
 
 RUN mkdir /tmp/built_pkgs
 COPY --from=builder /built_pkgs/ /tmp/built_pkgs/
 RUN ls /tmp/built_pkgs && pacman -U --noconfirm /tmp/built_pkgs/*.tar.zst && rm -rf /tmp/built_pkgs
 
-RUN systemctl enable NetworkManager power-profiles-daemon bluetooth plasmalogin
-
 RUN pacman -Scc --noconfirm
+
+RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen && \
+    echo -e '\neval $(starship init bash)' > /etc/bash.bashrc && \
+    plymouth-set-default-theme bgrt && \
+    systemctl enable NetworkManager power-profiles-daemon bluetooth plasmalogin tlp && \
+    systemd-firstboot --reset
 
 # https://github.com/bootc-dev/bootc/issues/1801
 RUN --mount=type=tmpfs,dst=/tmp --mount=type=tmpfs,dst=/root \
@@ -81,7 +88,7 @@ RUN --mount=type=tmpfs,dst=/tmp --mount=type=tmpfs,dst=/root \
     git clone "https://github.com/bootc-dev/bootc.git" /tmp/bootc && \
     make -C /tmp/bootc bin install-all && \
     printf "systemdsystemconfdir=/etc/systemd/system\nsystemdsystemunitdir=/usr/lib/systemd/system\n" | tee /usr/lib/dracut/dracut.conf.d/30-bootcrew-fix-bootc-module.conf && \
-    printf 'reproducible=yes\nhostonly=no\ncompress=zstd\nadd_dracutmodules+=" ostree bootc "' | tee "/usr/lib/dracut/dracut.conf.d/30-bootcrew-bootc-container-build.conf" && \
+    printf 'reproducible=yes\nhostonly=no\ncompress=zstd\nadd_dracutmodules+=" ostree plymouth bootc "' | tee "/usr/lib/dracut/dracut.conf.d/30-bootcrew-bootc-container-build.conf" && \
     dracut --force "$(find /usr/lib/modules -maxdepth 1 -type d | grep -v -E "*.img" | tail -n 1)/initramfs.img" && \
     pacman -Rns --noconfirm rust go-md2man && \
     pacman -S --clean --noconfirm
