@@ -13,12 +13,6 @@ RUN sudo -u builder git clone https://aur.archlinux.org/libfprint-cs9711-git.git
     cp *.tar.zst /built_pkgs/ && \
     cd ../ && rm -rf package
 
-RUN sudo -u builder git clone https://aur.archlinux.org/visual-studio-code-bin.git package && \
-    cd package && \
-    sudo -u builder makepkg -s --noconfirm && \ 
-    cp *.tar.zst /built_pkgs/ && \
-    cd ../ && rm -rf package
-
 FROM docker.io/cachyos/cachyos-v3:latest as base
 
 # Move everything from `/var` to `/usr/lib/sysimage` so behavior around pacman remains the same on `bootc usroverlay`'d systems
@@ -52,6 +46,9 @@ RUN pacman -S --noconfirm \
 RUN mkdir /tmp/built_pkgs
 COPY --from=builder /built_pkgs/ /tmp/built_pkgs/
 RUN ls /tmp/built_pkgs && pacman -U --noconfirm /tmp/built_pkgs/*.tar.zst && rm -rf /tmp/built_pkgs
+
+RUN pacman -S --noconfirm \
+    fprintd
 
 RUN pacman -Scc --noconfirm
 
