@@ -1,17 +1,4 @@
-FROM docker.io/archlinux/archlinux:latest AS builder
-
-RUN pacman-key --init && \
-    pacman-key --recv-keys F3B607488DB35A47 --keyserver keyserver.ubuntu.com && \
-    pacman-key --lsign-key F3B607488DB35A47
-
-RUN pacman -U --noconfirm 'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-keyring-20240331-1-any.pkg.tar.zst' \
-'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-mirrorlist-22-1-any.pkg.tar.zst' \
-'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-v3-mirrorlist-22-1-any.pkg.tar.zst' \
-'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-v4-mirrorlist-22-1-any.pkg.tar.zst' \
-'https://mirror.cachyos.org/repo/x86_64/cachyos/pacman-7.1.0.r9.g54d9411-2-x86_64.pkg.tar.zst'
-
-RUN echo -e "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos-core-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos-extra-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n" | tee -a /etc/pacman.conf
-RUN echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | tee -a /etc/pacman.conf
+FROM docker.io/cachyos/cachyos-v3:latest AS builder
 
 RUN pacman -Sy --noconfirm base-devel sudo git
 
@@ -33,7 +20,7 @@ RUN sudo -u builder git clone https://aur.archlinux.org/visual-studio-code-bin.g
     cp *.tar.zst /built_pkgs/ && \
     cd ../ && rm -rf package
 
-FROM docker.io/archlinux/archlinux:latest
+FROM docker.io/cachyos/cachyos-v3:latest
 
 # Move everything from `/var` to `/usr/lib/sysimage` so behavior around pacman remains the same on `bootc usroverlay`'d systems
 RUN grep "= */var" /etc/pacman.conf | sed "/= *\/var/s/.*=// ; s/ //" | xargs -n1 sh -c 'mkdir -p "/usr/lib/sysimage/$(dirname $(echo $1 | sed "s@/var/@@"))" && mv -v "$1" "/usr/lib/sysimage/$(echo "$1" | sed "s@/var/@@")"' '' && \
@@ -45,19 +32,6 @@ RUN sed -i 's/^[[:space:]]*NoExtract/#&/' /etc/pacman.conf
 
 # Reinstall glibc to fix missing language files due to missing in the base image
 RUN --mount=type=tmpfs,dst=/tmp --mount=type=cache,dst=/usr/lib/sysimage/cache/pacman pacman -Sy glibc --noconfirm
-
-RUN pacman-key --init && \
-    pacman-key --recv-keys F3B607488DB35A47 --keyserver keyserver.ubuntu.com && \
-    pacman-key --lsign-key F3B607488DB35A47
-
-RUN pacman -U --noconfirm 'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-keyring-20240331-1-any.pkg.tar.zst' \
-'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-mirrorlist-22-1-any.pkg.tar.zst' \
-'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-v3-mirrorlist-22-1-any.pkg.tar.zst' \
-'https://mirror.cachyos.org/repo/x86_64/cachyos/cachyos-v4-mirrorlist-22-1-any.pkg.tar.zst' \
-'https://mirror.cachyos.org/repo/x86_64/cachyos/pacman-7.1.0.r9.g54d9411-2-x86_64.pkg.tar.zst'
-
-RUN echo -e "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos-core-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos-extra-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n" | tee -a /etc/pacman.conf
-RUN echo -e "[multilib]\nInclude = /etc/pacman.d/mirrorlist\n" | tee -a /etc/pacman.conf
 
 RUN pacman -Syu --noconfirm
 
