@@ -95,6 +95,8 @@ RUN bootc container lint
 FROM quay.io/jlebon/chunkah AS chunkah
 RUN --mount=from=base,src=/,target=/chunkah,ro \
     --mount=type=bind,target=/run/src,rw \
-        chunkah build --max-layers 448 --compressed > /run/src/out.ociarchive
+        chunkah build --max-layers 128 \
+          --label containers.bootc=1 \
+          > /run/src/out.ociarchive
 
 FROM oci-archive:out.ociarchive
