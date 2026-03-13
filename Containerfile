@@ -13,6 +13,12 @@ RUN sudo -u builder git clone https://aur.archlinux.org/libfprint-cs9711-git.git
     cp *.tar.zst /built_pkgs/ && \
     cd ../ && rm -rf package
 
+RUN sudo -u builder git clone https://aur.archlinux.org/visual-studio-code-bin.git package && \
+    cd package && \
+    sudo -u builder makepkg -s --noconfirm && \ 
+    cp *.tar.zst /built_pkgs/ && \
+    cd ../ && rm -rf package
+
 FROM docker.io/cachyos/cachyos-v3:latest as base
 
 # Move everything from `/var` to `/usr/lib/sysimage` so behavior around pacman remains the same on `bootc usroverlay`'d systems
@@ -43,19 +49,24 @@ RUN pacman -S --noconfirm \
     steam-devices tailscale tlp vulkan-radeon wireplumber \
     xfsprogs yakuake zram-generator
 
+# Copy packages from AUR Builder
 RUN mkdir /tmp/built_pkgs
 COPY --from=builder /built_pkgs/ /tmp/built_pkgs/
 RUN ls /tmp/built_pkgs && pacman -U --noconfirm /tmp/built_pkgs/*.tar.zst && rm -rf /tmp/built_pkgs
 
+# Install fprintd here after CS9311 was installed
 RUN pacman -S --noconfirm \
     fprintd
 
-RUN pacman -Scc --noconfirm
+# Cleanup & /opt workaround
+COPY build_files/ /
 
-RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen && \
+RUN pacman -Scc --noconfirm && \
+    mv /opt /usr && \
+    echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen && \
     echo -e '\neval $(starship init bash)' >> /etc/bash.bashrc && \
     plymouth-set-default-theme bgrt && \
-    systemctl enable NetworkManager power-profiles-daemon bluetooth plasmalogin tlp && \
+    systemctl enable NetworkManager power-profiles-daemon bluetooth plasmalogin tlp opt.mount && \
     mkdir -p /usr/lib/bootc/kargs.d/ && \
     echo -e 'kargs = ["quiet splash"]' > /usr/lib/bootc/kargs.d/00-splash.toml
 
@@ -74,8 +85,8 @@ RUN --mount=type=tmpfs,dst=/tmp --mount=type=tmpfs,dst=/root \
 # Necessary for general behavior expected by image-based systems
 RUN sed -i 's|^HOME=.*|HOME=/var/home|' "/etc/default/useradd" && \
     rm -rf /boot /home /root /usr/local /srv /opt /mnt /var /usr/lib/sysimage/log /usr/lib/sysimage/cache/pacman/pkg && \
-    mkdir -p /sysroot /boot /usr/lib/ostree /var && \
-    ln -sT sysroot/ostree /ostree && ln -sT var/roothome /root && ln -sT var/srv /srv && ln -sT var/opt /opt && ln -sT var/mnt /mnt && ln -sT var/home /home && ln -sT ../var/usrlocal /usr/local && \
+    mkdir -p /sysroot /boot /usr/lib/ostree /var /opt && \
+    ln -sT sysroot/ostree /ostree && ln -sT var/roothome /root && ln -sT var/srv /srv && ln -sT var/mnt /mnt && ln -sT var/home /home && ln -sT ../var/usrlocal /usr/local && \
     echo "$(for dir in opt home srv mnt usrlocal ; do echo "d /var/$dir 0755 root root -" ; done)" | tee -a "/usr/lib/tmpfiles.d/bootc-base-dirs.conf" && \
     printf "d /var/roothome 0700 root root -\nd /run/media 0755 root root -" | tee -a "/usr/lib/tmpfiles.d/bootc-base-dirs.conf" && \
     printf '[composefs]\nenabled = yes\n[sysroot]\nreadonly = true\n' | tee "/usr/lib/ostree/prepare-root.conf"

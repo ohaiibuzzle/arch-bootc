@@ -1,0 +1,13 @@
+[Unit]
+Description=Overlay Mount for /opt
+ConditionPathExists=/usr/opt
+ConditionPathExists=/var/opt
+
+[Mount]
+What=overlay
+Where=/opt
+Type=overlay
+Options=lowerdir=/usr/opt,upperdir=/var/opt,workdir=/opt/.work
+
+[Install]
+WantedBy=multi-user.target
