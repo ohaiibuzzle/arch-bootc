@@ -7,7 +7,7 @@ ConditionPathExists=/var/opt
 What=overlay
 Where=/opt
 Type=overlay
-Options=lowerdir=/usr/opt,upperdir=/var/opt,workdir=/opt/.work
+Options=lowerdir=/usr/opt,upperdir=/var/opt,workdir=/var/.opt-work
 
 [Install]
 WantedBy=multi-user.target
