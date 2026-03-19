@@ -1,3 +1,7 @@
+# This repository is deprecated!
+
+Moved to <https://github.com/bootcrew/mono>
+
 # Arch Linux Bootc
 
 Reference [Arch Linux](https://archlinux.org/) container image preconfigured for [bootc](https://github.com/bootc-dev/bootc) usage.
