@@ -68,7 +68,8 @@ RUN pacman -Scc --noconfirm && \
     plymouth-set-default-theme bgrt && \
     systemctl enable NetworkManager power-profiles-daemon bluetooth plasmalogin tlp opt.mount && \
     mkdir -p /usr/lib/bootc/kargs.d/ && \
-    echo -e 'kargs = ["quiet splash"]' > /usr/lib/bootc/kargs.d/00-splash.toml
+    echo 'kargs = ["quiet splash"]' > /usr/lib/bootc/kargs.d/00-splash.toml && \
+    echo 'Error "UCM support temporary disabled for ${CardLongName}"' >> /usr/share/alsa/ucm2/USB-Audio/Sony/DualSense-PS5.conf
 
 
 # https://github.com/bootc-dev/bootc/issues/1801
