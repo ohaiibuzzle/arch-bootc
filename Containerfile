@@ -36,11 +36,11 @@ RUN pacman -Syu --noconfirm
 
 RUN pacman -S --noconfirm \
     7zip ark amd-ucode base base-devel bash-completion btop btrfs-progs \
-    cpio cachyos-handheld dbus dbus-glib discover distrobox dolphin dosfstools dracut \
+    cpio dbus dbus-glib discover distrobox dolphin dosfstools dracut \
     e2fsprogs efibootmgr fcitx5-anthy fcitx5-im fcitx5-unikey firefox flatpak \
     flatpak-kcm gamescope-session-cachyos git glib2 gptfdisk \
     intel-ucode jq just kate kwalletmanager linux-cachyos \
-    linux-cachyos-nvidia-open linux-firmware man-db mpv nano \
+    linux-cachyos-nvidia-open linux-firmware mangohud man-db mpv nano \
     networkmanager noto-fonts noto-fonts-cjk noto-fonts-extra \
     nvtop opencl-mesa opencl-nvidia openssh ostree partitionmanager \
     pipewire pipewire-jack plasma plasma-login-manager \
