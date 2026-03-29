@@ -59,8 +59,8 @@ RUN pacman -S --noconfirm \
     intel-ucode jq just kate kwalletmanager linux-cachyos \
     linux-cachyos-nvidia-open linux-firmware mangohud man-db mpv nano \
     networkmanager noto-fonts noto-fonts-cjk noto-fonts-extra \
-    nvtop opencl-mesa opencl-nvidia openssh ostree partitionmanager \
-    pipewire pipewire-jack plasma plasma-login-manager \
+    nvtop opencl-mesa opencl-nvidia openssh ostree parallel\
+    partitionmanager pipewire pipewire-jack plasma plasma-login-manager \
     plasma-systemmonitor plymouth plymouth-kcm podman \
     power-profiles-daemon sbctl shadow skopeo starship \
     steam-devices tailscale tlp vulkan-radeon wireplumber \
@@ -77,6 +77,9 @@ RUN pacman -S --noconfirm \
 
 # Cleanup & /opt workaround
 COPY build_files/ /
+
+RUN --mount=from=ctx,source=/scripts,target=/scripts,ro \
+    bash /scripts/chunkah_stability.sh
 
 RUN pacman -Scc --noconfirm && \
     mv /opt /usr && \
@@ -108,18 +111,15 @@ RUN sed -i 's|^HOME=.*|HOME=/var/home|' "/etc/default/useradd" && \
 # RUN pacman -S whois --noconfirm
 # RUN usermod -p "$(echo "changeme" | mkpasswd -s)" root
 
-RUN --mount=from=ctx,source=/scripts,target=/scripts,ro \
-    bash /scripts/chunkah_stability.sh
-
 # https://bootc-dev.github.io/bootc/bootc-images.html#standard-metadata-for-bootc-compatible-images
 LABEL containers.bootc 1
 
 RUN bootc container lint
 
 FROM quay.io/jlebon/chunkah AS chunkah
-RUN --mount=from=base,src=/,target=/chunkah,ro \
+RUN --mount=from=system,src=/,target=/chunkah,ro \
     --mount=type=bind,target=/run/src,rw \
-        chunkah build --max-layers 512 \
+        chunkah build --max-layers 128 \
           --label containers.bootc=1 \
           > /run/src/out.ociarchive
 

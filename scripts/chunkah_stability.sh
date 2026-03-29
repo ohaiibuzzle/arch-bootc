@@ -8,3 +8,6 @@ pacman -Qq | while read -r pkgname; do
     fi
   done
 done
+
+# set all of /usr/opt to be owned by the "opt" component, it will be overlayed to /opt in the final image
+find /usr/opt -type f -exec setfattr -n user.component -v "opt" {} \; || true
