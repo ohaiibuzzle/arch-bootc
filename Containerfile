@@ -1,5 +1,7 @@
 FROM scratch AS ctx
 
+COPY scripts/ /scripts
+
 FROM docker.io/cachyos/cachyos-v3:latest AS base
 
 FROM base AS bootc-builder
@@ -106,7 +108,19 @@ RUN sed -i 's|^HOME=.*|HOME=/var/home|' "/etc/default/useradd" && \
 # RUN pacman -S whois --noconfirm
 # RUN usermod -p "$(echo "changeme" | mkpasswd -s)" root
 
+RUN --mount=from=ctx,source=/scripts,target=/scripts,ro \
+    bash /scripts/chunkah_stability.sh
+
 # https://bootc-dev.github.io/bootc/bootc-images.html#standard-metadata-for-bootc-compatible-images
 LABEL containers.bootc 1
 
 RUN bootc container lint
+
+FROM quay.io/jlebon/chunkah AS chunkah
+RUN --mount=from=base,src=/,target=/chunkah,ro \
+    --mount=type=bind,target=/run/src,rw \
+        chunkah build --max-layers 512 \
+          --label containers.bootc=1 \
+          > /run/src/out.ociarchive
+
+FROM oci-archive:out.ociarchive
