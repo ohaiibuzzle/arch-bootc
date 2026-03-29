@@ -1,4 +1,17 @@
-FROM docker.io/cachyos/cachyos-v3:latest AS builder
+FROM scratch AS ctx
+
+FROM docker.io/cachyos/cachyos-v3:latest AS base
+
+FROM base AS bootc-builder
+
+RUN pacman -Syu --noconfirm make git rust go-md2man ostree glibc pkgconf
+
+WORKDIR /home/build
+RUN --mount=type=bind,from=ctx,source=/,target=/ctx \
+    git clone "https://github.com/bootc-dev/bootc.git" . && \
+    make bin install-all DESTDIR=/output
+
+FROM base AS aur-builder
 
 RUN pacman -Sy --noconfirm base-devel sudo git && \
     useradd builder && \
@@ -19,7 +32,9 @@ RUN sudo -u builder git clone https://aur.archlinux.org/visual-studio-code-bin.g
     cp *.tar.zst /built_pkgs/ && \
     cd ../ && rm -rf package
 
-FROM docker.io/cachyos/cachyos-v3:latest
+FROM base AS system
+
+COPY --from=bootc-builder /output /
 
 # Move everything from `/var` to `/usr/lib/sysimage` so behavior around pacman remains the same on `bootc usroverlay`'d systems
 RUN grep "= */var" /etc/pacman.conf | sed "/= *\/var/s/.*=// ; s/ //" | xargs -n1 sh -c 'mkdir -p "/usr/lib/sysimage/$(dirname $(echo $1 | sed "s@/var/@@"))" && mv -v "$1" "/usr/lib/sysimage/$(echo "$1" | sed "s@/var/@@")"' '' && \
@@ -51,7 +66,7 @@ RUN pacman -S --noconfirm \
 
 # Copy packages from AUR Builder
 RUN mkdir /tmp/built_pkgs
-COPY --from=builder /built_pkgs/ /tmp/built_pkgs/
+COPY --from=aur-builder /built_pkgs/ /tmp/built_pkgs/
 RUN ls /tmp/built_pkgs && pacman -U --noconfirm /tmp/built_pkgs/*.tar.zst && rm -rf /tmp/built_pkgs
 
 # Install fprintd here after CS9311 was installed
@@ -63,7 +78,7 @@ COPY build_files/ /
 
 RUN pacman -Scc --noconfirm && \
     mv /opt /usr && \
-    echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen && \
+    echo -e "en_US.UTF-8 UTF-8\nen_GB.UTF-8 UTF-8" > /etc/locale.gen && locale-gen && \
     echo -e '\neval $(starship init bash)' >> /etc/bash.bashrc && \
     plymouth-set-default-theme bgrt && \
     systemctl enable NetworkManager power-profiles-daemon bluetooth plasmalogin tlp opt.mount && \
@@ -74,14 +89,9 @@ RUN pacman -Scc --noconfirm && \
 
 # https://github.com/bootc-dev/bootc/issues/1801
 RUN --mount=type=tmpfs,dst=/tmp --mount=type=tmpfs,dst=/root \
-    pacman -S --noconfirm rust go-md2man && \
-    git clone "https://github.com/bootc-dev/bootc.git" /tmp/bootc && \
-    make -C /tmp/bootc bin install-all && \
     printf "systemdsystemconfdir=/etc/systemd/system\nsystemdsystemunitdir=/usr/lib/systemd/system\n" | tee /usr/lib/dracut/dracut.conf.d/30-bootcrew-fix-bootc-module.conf && \
-    printf 'reproducible=yes\nhostonly=no\ncompress=zstd\nadd_dracutmodules+=" ostree plymouth bootc "' | tee "/usr/lib/dracut/dracut.conf.d/30-bootcrew-bootc-container-build.conf" && \
-    dracut --force "$(find /usr/lib/modules -maxdepth 1 -type d | grep -v -E "*.img" | tail -n 1)/initramfs.img" && \
-    pacman -Rns --noconfirm rust go-md2man && \
-    pacman -S --clean --noconfirm
+    printf 'reproducible=yes\nhostonly=no\ncompress=zstd\nadd_dracutmodules+=" plymouth bootc "' | tee "/usr/lib/dracut/dracut.conf.d/30-bootcrew-bootc-container-build.conf" && \
+    dracut --force "$(find /usr/lib/modules -maxdepth 1 -type d | grep -v -E "*.img" | tail -n 1)/initramfs.img"
 
 # Necessary for general behavior expected by image-based systems
 RUN sed -i 's|^HOME=.*|HOME=/var/home|' "/etc/default/useradd" && \
@@ -100,12 +110,3 @@ RUN sed -i 's|^HOME=.*|HOME=/var/home|' "/etc/default/useradd" && \
 LABEL containers.bootc 1
 
 RUN bootc container lint
-
-# FROM quay.io/jlebon/chunkah AS chunkah
-# RUN --mount=from=base,src=/,target=/chunkah,ro \
-#     --mount=type=bind,target=/run/src,rw \
-#         chunkah build --max-layers 128 \
-#           --label containers.bootc=1 \
-#           > /run/src/out.ociarchive
-
-# FROM oci-archive:out.ociarchive
