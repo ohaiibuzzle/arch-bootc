@@ -19,7 +19,7 @@ RUN sudo -u builder git clone https://aur.archlinux.org/visual-studio-code-bin.g
     cp *.tar.zst /built_pkgs/ && \
     cd ../ && rm -rf package
 
-FROM docker.io/cachyos/cachyos-v3:latest as base
+FROM docker.io/cachyos/cachyos-v3:latest
 
 # Move everything from `/var` to `/usr/lib/sysimage` so behavior around pacman remains the same on `bootc usroverlay`'d systems
 RUN grep "= */var" /etc/pacman.conf | sed "/= *\/var/s/.*=// ; s/ //" | xargs -n1 sh -c 'mkdir -p "/usr/lib/sysimage/$(dirname $(echo $1 | sed "s@/var/@@"))" && mv -v "$1" "/usr/lib/sysimage/$(echo "$1" | sed "s@/var/@@")"' '' && \
@@ -36,8 +36,8 @@ RUN pacman -Syu --noconfirm
 
 RUN pacman -S --noconfirm \
     7zip ark amd-ucode base base-devel bash-completion btop btrfs-progs \
-    cpio cachyos-handheld dbus dbus-glib discover dolphin dosfstools dracut e2fsprogs \
-    efibootmgr fcitx5-anthy fcitx5-im fcitx5-unikey firefox flatpak \
+    cpio cachyos-handheld dbus dbus-glib discover distrobox dolphin dosfstools dracut \
+    e2fsprogs efibootmgr fcitx5-anthy fcitx5-im fcitx5-unikey firefox flatpak \
     flatpak-kcm gamescope-session-cachyos git glib2 gptfdisk \
     intel-ucode jq just kate kwalletmanager linux-cachyos \
     linux-cachyos-nvidia-open linux-firmware man-db mpv nano \
@@ -101,11 +101,11 @@ LABEL containers.bootc 1
 
 RUN bootc container lint
 
-FROM quay.io/jlebon/chunkah AS chunkah
-RUN --mount=from=base,src=/,target=/chunkah,ro \
-    --mount=type=bind,target=/run/src,rw \
-        chunkah build --max-layers 128 \
-          --label containers.bootc=1 \
-          > /run/src/out.ociarchive
+# FROM quay.io/jlebon/chunkah AS chunkah
+# RUN --mount=from=base,src=/,target=/chunkah,ro \
+#     --mount=type=bind,target=/run/src,rw \
+#         chunkah build --max-layers 128 \
+#           --label containers.bootc=1 \
+#           > /run/src/out.ociarchive
 
-FROM oci-archive:out.ociarchive
+# FROM oci-archive:out.ociarchive
