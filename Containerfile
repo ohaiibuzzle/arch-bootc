@@ -22,11 +22,11 @@ RUN pacman -Sy --noconfirm base-devel sudo git && \
 
 WORKDIR /tmp
 
-RUN sudo -u builder git clone https://aur.archlinux.org/libfprint-cs9711-git.git package && \
-    cd package && \
-    sudo -u builder makepkg -s --noconfirm && \ 
-    cp *.tar.zst /built_pkgs/ && \
-    cd ../ && rm -rf package
+# RUN sudo -u builder git clone https://aur.archlinux.org/libfprint-cs9711-git.git package && \
+#     cd package && \
+#     sudo -u builder makepkg -s --noconfirm && \ 
+#     cp *.tar.zst /built_pkgs/ && \
+#     cd ../ && rm -rf package
 
 RUN sudo -u builder git clone https://aur.archlinux.org/visual-studio-code-bin.git package && \
     cd package && \
