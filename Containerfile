@@ -22,11 +22,13 @@ RUN pacman -Sy --noconfirm base-devel sudo git && \
 
 WORKDIR /tmp
 
-# RUN sudo -u builder git clone https://aur.archlinux.org/libfprint-cs9711-git.git package && \
-#     cd package && \
-#     sudo -u builder makepkg -s --noconfirm && \ 
-#     cp *.tar.zst /built_pkgs/ && \
-#     cd ../ && rm -rf package
+RUN sudo -u builder git clone https://aur.archlinux.org/libfprint-cs9711-git.git package && \
+    cd package && \
+    curl -LO https://gist.githubusercontent.com/ohaiibuzzle/ab54f5546ed9f1f2e74d0c28a096b7be/raw/89eb08b29c49216938e1091cf0419a5162c001d1/cs9711-pkgbuild.patch && \
+    patch -p1 < cs9711-pkgbuild.patch && \
+    sudo -u builder makepkg -s --noconfirm && \ 
+    cp *.tar.zst /built_pkgs/ && \
+    cd ../ && rm -rf package
 
 RUN sudo -u builder git clone https://aur.archlinux.org/visual-studio-code-bin.git package && \
     cd package && \
@@ -63,7 +65,7 @@ RUN pacman -S --noconfirm \
     partitionmanager pipewire pipewire-jack plasma plasma-foreground-booster plasma-login-manager \
     plasma-systemmonitor plymouth plymouth-kcm podman \
     power-profiles-daemon sbctl shadow skopeo starship \
-    steam-devices tailscale tlp vulkan-radeon wireplumber \
+    steam-devices systemd tailscale tlp vulkan-radeon wireplumber \
     xbindkeys xfsprogs yakuake zram-generator
 
 # Copy packages from AUR Builder
@@ -116,11 +118,11 @@ LABEL containers.bootc 1
 
 RUN bootc container lint
 
-FROM quay.io/jlebon/chunkah AS chunkah
-RUN --mount=from=system,src=/,target=/chunkah,ro \
-    --mount=type=bind,target=/run/src,rw \
-        chunkah build --max-layers 128 \
-          --label containers.bootc=1 \
-          > /run/src/out.ociarchive
+# FROM quay.io/coreos/chunkah AS chunkah
+# RUN --mount=from=system,src=/,target=/chunkah,ro \
+#     --mount=type=bind,target=/run/src,rw \
+#     chunkah build --max-layers 128 \
+#     --label containers.bootc=1 \
+#     > /run/src/out.ociarchive
 
-FROM oci-archive:out.ociarchive
+# FROM oci-archive:out.ociarchive
