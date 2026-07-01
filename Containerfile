@@ -22,10 +22,8 @@ RUN pacman -Sy --noconfirm base-devel sudo git && \
 
 WORKDIR /tmp
 
-RUN sudo -u builder git clone https://aur.archlinux.org/libfprint-cs9711-git.git package && \
+RUN sudo -u builder git clone https://aur.archlinux.org/libfprint-cs9711-rebase-git.git package && \
     cd package && \
-    curl -LO https://gist.githubusercontent.com/ohaiibuzzle/ab54f5546ed9f1f2e74d0c28a096b7be/raw/89eb08b29c49216938e1091cf0419a5162c001d1/cs9711-pkgbuild.patch && \
-    patch -p1 < cs9711-pkgbuild.patch && \
     sudo -u builder makepkg -s --noconfirm && \ 
     cp *.tar.zst /built_pkgs/ && \
     cd ../ && rm -rf package
