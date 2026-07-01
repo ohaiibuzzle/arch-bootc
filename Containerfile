@@ -75,18 +75,17 @@ RUN ls /tmp/built_pkgs && pacman -U --noconfirm /tmp/built_pkgs/*.tar.zst && rm 
 RUN pacman -S --noconfirm \
     fprintd
 
-# Cleanup & /opt workaround
+# Cleanup
 COPY build_files/ /
 
 RUN --mount=from=ctx,source=/scripts,target=/scripts,ro \
     bash /scripts/chunkah_stability.sh
 
 RUN pacman -Scc --noconfirm && \
-    mv /opt /usr && \
     echo -e "en_US.UTF-8 UTF-8\nen_GB.UTF-8 UTF-8" > /etc/locale.gen && locale-gen && \
     echo -e '\neval $(starship init bash)' >> /etc/bash.bashrc && \
     plymouth-set-default-theme bgrt && \
-    systemctl enable NetworkManager power-profiles-daemon bluetooth plasmalogin tlp opt.mount && \
+    systemctl enable NetworkManager power-profiles-daemon bluetooth plasmalogin tlp && \
     mkdir -p /usr/lib/bootc/kargs.d/ && \
     echo 'kargs = ["quiet splash zswap.enabled=0"]' > /usr/lib/bootc/kargs.d/00-splash.toml && \
     echo 'Error "UCM support temporary disabled for ${CardLongName}"' >> /usr/share/alsa/ucm2/USB-Audio/Sony/DualSense-PS5.conf
@@ -102,7 +101,7 @@ RUN --mount=type=tmpfs,dst=/tmp --mount=type=tmpfs,dst=/root \
 RUN sed -i 's|^HOME=.*|HOME=/var/home|' "/etc/default/useradd" && \
     rm -rf /boot /home /root /usr/local /srv /opt /mnt /var /usr/lib/sysimage/log /usr/lib/sysimage/cache/pacman/pkg && \
     mkdir -p /sysroot /boot /usr/lib/ostree /var /opt && \
-    ln -sT sysroot/ostree /ostree && ln -sT var/roothome /root && ln -sT var/srv /srv && ln -sT var/mnt /mnt && ln -sT var/home /home && ln -sT ../var/usrlocal /usr/local && \
+    ln -sT sysroot/ostree /ostree && ln -sT var/roothome /root && ln -sT var/srv /srv && ln -sT var/mnt /mnt && ln -sT var/opt /opt && ln -sT var/home /home && ln -sT ../var/usrlocal /usr/local && \
     echo "$(for dir in opt home srv mnt usrlocal ; do echo "d /var/$dir 0755 root root -" ; done)" | tee -a "/usr/lib/tmpfiles.d/bootc-base-dirs.conf" && \
     printf "d /var/roothome 0700 root root -\nd /run/media 0755 root root -" | tee -a "/usr/lib/tmpfiles.d/bootc-base-dirs.conf" && \
     printf '[composefs]\nenabled = yes\n[sysroot]\nreadonly = true\n' | tee "/usr/lib/ostree/prepare-root.conf"
